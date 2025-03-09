@@ -1,24 +1,21 @@
 import threading
 import time
+
 from pynput import mouse, keyboard
-import pydirectinput as pdi
 
-from event import Event, EventType
+from replay import Event, EventType
 
-class EventRecorder:
+class Recorder:
     def __init__(self, ignore_keys=[], events=[]):
         self.events = events
         self.ignore_keys = ignore_keys
-        self.started = None
+        self.last = None
         self.mouse_listener = mouse.Listener(on_move=self.on_mouse_move, on_click=self.on_mouse_click, on_scroll=self.on_mouse_scroll)
         self.keyboard_listener = keyboard.Listener(on_press=self.on_keyboard_press, on_release=self.on_keyboard_release)
 
-    def clone(self):
-        return EventRecorder(ignore_keys=self.ignore_keys, events=self.events.copy())
-
     def elapsed_time(self):
-        elapsed =  time.perf_counter() - self.started
-        self.started = time.perf_counter()
+        elapsed =  time.perf_counter() - self.last
+        self.last = time.perf_counter()
         return elapsed
 
     def on_mouse_move(self, x, y):
@@ -48,12 +45,15 @@ class EventRecorder:
         self.events.append(Event(EventType.MOUSE_MOVE, position=self.initial_mouse_position, when=0))
 
     def start(self):
-        self.started = time.perf_counter()
+        self.events.clear()
+        self.running = True
+        self.last = time.perf_counter()
         self.record_initial_mouse_position()
         self.mouse_listener.start()
         self.keyboard_listener.start()
 
     def stop(self):
+        self.running = False
         self.mouse_listener.stop()
         self.keyboard_listener.stop()
         return self.events

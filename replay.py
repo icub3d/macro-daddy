@@ -1,6 +1,9 @@
 from enum import Enum
 import json
 
+import pydirectinput as pdi
+import pynput
+
 # Define the EventType enum
 class EventType(str, Enum):
     MOUSE_MOVE = 'mouse_move'
@@ -43,3 +46,17 @@ class Event:
       
     def to_json(self):
         return json.dumps(self.to_dict())
+
+class Replay:
+    def __init__(self, events=[]):
+        self.events = events
+
+    @classmethod
+    def load(cls, file_path):
+        with open(file_path, 'r') as file:
+            data = json.load(file)
+            return cls(events=[Event.from_dict(event) for event in data])
+
+    def save(self, file_path):
+        with open(file_path, 'w') as file:
+            json.dump([event.to_dict() for event in self.events] , file, indent=4)
