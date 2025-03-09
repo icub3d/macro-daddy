@@ -106,7 +106,7 @@ class MacroRecorderApp:
                 self._insert_log(f"failed to save replay: {e}", "error")
 
     def start_replay(self):
-        self._insert_log("starting replay ", "info")
+        self._insert_log("starting replay", "info")
         self.replay_running.set()
         self.replay_thread = threading.Thread(target=self._replay_loop)
         self.replay_thread.start()
