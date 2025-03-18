@@ -5,9 +5,9 @@ from controller import DefaultController
 from replay import Replay
 
 class HighResolutionTicker:
-    def __init__(self, cancel=None):
+    def __init__(self, cancel=None, duration=None):
         self.start = time.perf_counter()
-        self.expected = 0
+        self.expected = 0 if duration is None else duration
         self.cancel = cancel
     
     def next(self, duration):
@@ -54,39 +54,18 @@ class Replayer:
             self.replay_thread.join()
         
     def _repeat_replay(self):
-        self._replay()
+        duration = self._replay(None)
         while self.repeat and not self.stop_event.is_set():
-            self._replay()
+            duration = self._replay(duration)
 
-    def _replay(self):
-        ticker = HighResolutionTicker(self.stop_event)
-        actual = time.perf_counter()
-        expected = 0
+    def _replay(self, duration=None):
+        ticker = HighResolutionTicker(cancel=self.stop_event, duration=duration)
         for event in self.events:
             if self.stop_event.is_set():
                 break
-            expected += event.when
             ticker.next(event.when)
             self.controller.exec(event)
 
-        actual = time.perf_counter() - actual
-        print(f"expected: {expected}, actual: {actual}, diff: {actual - expected}")
-
-
-if __name__ == "__main__":
-    # Test the high resolution ticker with file given on command line.
-    import argparse
-    parser = argparse.ArgumentParser(description="test high resolution ticker")
-    parser.add_argument("replay_file", type=str, help="path to the replay file")
-    args = parser.parse_args()
-    replay = Replay.load(args.replay_file)
-
-    ticker = HighResolutionTicker()
-    expected = 0
-    actual = time.perf_counter()
-    for event in replay.events:
-        ticker.next(event.when)
-        expected += event.when
-
-    actual = time.perf_counter() - actual
-    print(f"expected: {expected}, actual: {actual}, diff: {actual - expected}")
+        actual = time.perf_counter() - ticker.start
+        print(f"expected: {ticker.expected}, actual: {actual}, diff: {actual - ticker.expected}")
+        return actual - ticker.expected

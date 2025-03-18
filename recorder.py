@@ -56,4 +56,5 @@ class Recorder:
         self.running = False
         self.mouse_listener.stop()
         self.keyboard_listener.stop()
+        self.events.append(Event(EventType.MOUSE_MOVE, position=self.initial_mouse_position, when=0))
         return self.events
