@@ -1,5 +1,3 @@
-import argparse
-import json
 import time
 import tkinter as tk
 from tkinter import scrolledtext, filedialog, messagebox
@@ -7,7 +5,6 @@ import threading
 
 from pynput import keyboard
 
-from controller import DefaultController
 from replay import Replay
 from replayer import Replayer
 from recorder import Recorder
@@ -16,103 +13,11 @@ from recorder import Recorder
 import ctypes
 ctypes.windll.shcore.SetProcessDpiAwareness(2)
 
-# def record():
-#     recorder = Recorder()
-
-#     recorder_thread = threading.Thread(target=recorder.start)
-    
-
-#     def on_stop():
-#         recorder.stop()
-#         events = recorder.events
-#         print(json.dumps([event.to_dict() for event in events], indent=4))
-
-#     # Wait for F8 to stop recording
-#     stop_event = threading.Event()
-#     def wait_for_stop():
-#         while not stop_event.is_set():
-#             time.sleep(0.1)
-#     threading.Thread(target=wait_for_stop).start()
-
-#     # Listen for F8 to stop recording
-#     from pynput import keyboard
-#     def on_press(key):
-#         if key == keyboard.Key.f8:
-#             stop_event.set()
-#             on_stop()
-#         elif key == keyboard.Key.f7:
-#             recorder.start()
-
-
-#     with keyboard.Listener(on_press=on_press) as listener:
-#         listener.join()
-
-# def replay(replay_file, repeat):
-#     print("Press F5 to start replay and F6 to stop replay.")
-#     with open(replay_file, 'r') as file:
-#         events = json.load(file)
-#         events = [DefaultController.Event.from_dict(event) for event in events]
-
-#     replayer = Replayer(controller=DefaultController(), repeat=repeat, events=events)
-
-#     def on_start():
-#         replayer.start()
-
-#     def on_stop():
-#         replayer.stop()
-
-#     # Wait for F6 to stop replay
-#     stop_event = threading.Event()
-#     def wait_for_stop():
-#         while not stop_event.is_set():
-#             time.sleep(0.1)
-#     threading.Thread(target=wait_for_stop).start()
-
-#     # Listen for F5 to start replay and F6 to stop replay
-#     from pynput import keyboard
-#     def on_press(key):
-#         if key == keyboard.Key.f5:
-#             on_start()
-#         elif key == keyboard.Key.f6:
-#             stop_event.set()
-#             on_stop()
-#             return False
-
-#     with keyboard.Listener(on_press=on_press) as listener:
-#         listener.join()
-
-# def main():
-#     parser = argparse.ArgumentParser(description="macro daddy - record and replay macros")
-#     subparsers = parser.add_subparsers(dest="command")
-
-#     # Record command
-#     record_parser = subparsers.add_parser("record", help="record events (F7 to start, F8 to stop)")
-
-#     # Replay command
-#     replay_parser = subparsers.add_parser("replay", help="replay events (F5 to start, F6 to stop)")
-#     replay_parser.add_argument("replay_file", type=str, help="path to the replay file")
-#     replay_parser.add_argument("--repeat", action="store_true", help="repeat the replay, until stopped")
-
-#     args = parser.parse_args()
-
-#     if args.command == "record":
-#         record()
-#     elif args.command == "replay":
-#         replay(args.replay_file, args.repeat)
-#     else:
-#         parser.print_help()
-
-# if __name__ == "__main__":
-#     main()
-
 class MacroDaddyApp:
     def __init__(self, root):
         self.root = root
         self.root.title("Macro Daddy")
-        self.replay = None
-        self.recorder = None
         self.recorder_running = threading.Event()
-        self.replayer = None
         self.replayer_running = threading.Event()
 
         # Create a label for keybinds
@@ -210,7 +115,7 @@ class MacroDaddyApp:
         self.replayer.stop()
         self._insert_log("stopping replay", "info")
 
-    def _insert_log(self, text, tag=None):
+    def _insert_log(self, text, tag="info"):
         self.log.config(state=tk.NORMAL)
         when = time.strftime("%Y-%m-%d %H:%M:%S")
         self.log.insert(tk.END, f"when={when} message=\"{text}\"\n", tag)

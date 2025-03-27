@@ -1,4 +1,3 @@
-import threading
 import time
 
 from pynput import mouse, keyboard
@@ -9,7 +8,6 @@ class Recorder:
     def __init__(self, ignore_keys=[], events=[]):
         self.events = events
         self.ignore_keys = ignore_keys
-        self.last = None
         self.mouse_listener = mouse.Listener(on_move=self.on_mouse_move, on_click=self.on_mouse_click, on_scroll=self.on_mouse_scroll)
         self.keyboard_listener = keyboard.Listener(on_press=self.on_keyboard_press, on_release=self.on_keyboard_release)
 
@@ -56,5 +54,5 @@ class Recorder:
         self.running = False
         self.mouse_listener.stop()
         self.keyboard_listener.stop()
-        self.events.append(Event(EventType.MOUSE_MOVE, position=self.initial_mouse_position, when=0))
+        self.events.append(Event(EventType.MOUSE_MOVE, position=self.initial_mouse_position, when=self.elapsed_time()))
         return self.events
